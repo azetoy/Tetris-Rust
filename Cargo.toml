@@ -1,7 +1,7 @@
 [package]
 name = "the-binding-of-tetris"
 version = "0.1.0"
-authors = ["Hippolyte Mithouard <hippolyte.mithouard@gmail.com>"]
+authors = ["Hippolyte Mithouard <hippolyte.mithouard@gmail.com>,Berrichi Zineddine<zineddine.berrichi@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
