@@ -18,11 +18,11 @@ impl App {
     fn render(&mut self, args: &RenderArgs) {
         use graphics::*;
 
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+        const GREEN: [f32; 4] = [0.6, 0.55, 0.59, 1.0]; //les couleur sonr R,G,B mais diviser par 255 la derniere valeur c'est la transparence
         const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 
-        let square = rectangle::square(0.0, 0.0, 50.0);
-        let rotation = self.rotation;
+        let square = rectangle::square(0.0, 0.0, 30.0);
+        //let rotation = self.rotation;
         let (x, y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
 
         self.gl.draw(args.viewport(), |c, gl| {
@@ -32,7 +32,7 @@ impl App {
             let transform = c
                 .transform
                 .trans(x, y)
-                .rot_rad(rotation)
+                //.rot_rad(rotation)
                 .trans(-25.0, -25.0);
 
             // Draw a box rotating around the middle of the screen.
@@ -40,10 +40,10 @@ impl App {
         });
     }
 
-    fn update(&mut self, args: &UpdateArgs) {
+    /*fn update(&mut self, args: &UpdateArgs) {
         // Rotate 2 radians per second.
-        self.rotation += 2.0 * args.dt;
-    }
+        //self.rotation += 2.0 * args.dt;
+    }*/
 }
 
 fn main() {
@@ -51,7 +51,7 @@ fn main() {
     let opengl = OpenGL::V3_2;
 
     // Create an Glutin window.
-    let mut window: Window = WindowSettings::new("spinning-square", [200, 200])
+    let mut window: Window = WindowSettings::new("spinning-square", [400, 800])
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()
@@ -69,8 +69,8 @@ fn main() {
             app.render(&args);
         }
 
-        if let Some(args) = e.update_args() {
+        /*if let Some(args) = e.update_args() {
             app.update(&args);
-        }
+        }*/
     }
 }
