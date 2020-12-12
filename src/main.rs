@@ -1,76 +1,99 @@
-extern crate glutin_window;
-extern crate graphics;
-extern crate opengl_graphics;
-extern crate piston;
+extern crate piston_window;
 
-use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{GlGraphics, OpenGL};
-use piston::event_loop::{EventSettings, Events};
-use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
-use piston::window::WindowSettings;
+use piston_window::*;
 
-pub struct App {
-    gl: GlGraphics, // OpenGL drawing backend.
-    rotation: f64,  // Rotation for the square.
+pub struct Game {
+    //gl: GlGraphics,
+    rotation: f64,
+    x: f64,
+    y: f64,
+    up: bool,down: bool,left: bool,right: bool
 }
 
-impl App {
-    fn render(&mut self, args: &RenderArgs) {
-        use graphics::*;
 
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-        const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-
-        let square = rectangle::square(0.0, 0.0, 50.0);
-        let rotation = self.rotation;
-        let (x, y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
-
-        self.gl.draw(args.viewport(), |c, gl| {
-            // Clear the screen.
-            clear(GREEN, gl);
-
-            let transform = c
-                .transform
-                .trans(x, y)
-                .rot_rad(rotation)
-                .trans(-25.0, -25.0);
-
-            // Draw a box rotating around the middle of the screen.
-            rectangle(RED, square, transform, gl);
-        });
+impl Game {
+    fn new() -> Game 
+    {
+        Game{rotation: 0.0,x : 0.0, y : 0.0, up: false, down: false,left:false,right:false}
     }
 
-    fn update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
-        self.rotation += 2.0 * args.dt;
+
+    fn update(&mut self, upd: UpdateArgs) 
+    {
+        self.rotation = 0.0 * upd.dt;
+        match self.upd
+        {
+            self.up => self.x += (10.0) * upd.dt,
+            self.down => self.x += (-10.0)* upd.dt,
+            self.left => self.y += (-10.0)* upd.dt,
+            self.right => self.y += (10.0)* upd.dt,  
+        } 
+
+
     }
-}
 
-fn main() {
-    // Change this to OpenGL::V2_1 if not working.
-    let opengl = OpenGL::V3_2;
+    fn draw(&mut self,x: PistonWindow) 
+    {
+       x.draw_2d(|c, g|
+       {
+           clear([0.0, 0.0, 0.0, 1.0],g);
+           let center = c.transform.trans((400) as f64, (800) as f64);
+           let square = rectangle::square(0.0,0.0,30.0);
+           let red = [1.0, 0.0, 0.0, 1.0];
+           rectangle(red,square,center.trans(self.x,self.y).trans(-10.0, -10.0),);
 
-    // Create an Glutin window.
-    let mut window: Window = WindowSettings::new("spinning-square", [200, 200])
-        .graphics_api(opengl)
-        .exit_on_esc(true)
-        .build()
-        .unwrap();
+       });
+    }
+    fn on_input(&mut self, inp: Input)
+    {
+        match inp
+        {
+            Input::Press(but) =>
+            {
+                match but
+                {
+                    Button::Keyboard(Key::Up) => {self.up = true;}
+                    Button::Keyboard(Key::Down) => {self.down = true;}
+                    Button::Keyboard(key::Left) => {self.left = true;}
+                    Button::Keyboard(Key::Right) => {self.right = true;}
+                    _ => {}
+                }
+            }
+            Input::Release(but) =>
+            {
+                match but 
+                {
+                    Button::Keyboard(Key::Up) => {self.up = false;}
+                    Button::Keyboard(Key::Down) => {self.down = false;}
+                    Button::Keyboard(key::Left) => {self.left = false;}
+                    Button::Keyboard(Key::Right) => {self.right = false;}
+                    _ => {}
 
-    // Create a new game and run it.
-    let mut app = App {
-        gl: GlGraphics::new(opengl),
-        rotation: 0.0,
-    };
-
-    let mut events = Events::new(EventSettings::new());
-    while let Some(e) = events.next(&mut window) {
-        if let Some(args) = e.render_args() {
-            app.render(&args);
+                }
+            }
+            _ => {}
         }
+    }
+}
+fn main() 
+{
+    let window: PistonWindow = WindowSettings::new(
+        "The Binding of Tetris",
+        [400,800]
+    )
+    .exit_on_esc(true)
+    .build()
+    .unwrap();
 
-        if let Some(args) = e.update_args() {
-            app.update(&args);
+    let mut game = Game::new();
+    for e in window
+    {
+        match e.event
+        {
+            Some(Event::Update(upd)) => {game.update(upd);}
+            Some(Event::Render(ren)) => {game.draw(ren, e);}
+            Some(Event::Input(inp)) => {game.on_input(inp);}
+            _ => {}
         }
     }
 }
