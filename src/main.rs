@@ -1,76 +1,132 @@
-extern crate glutin_window;
+extern crate  piston;
 extern crate graphics;
+extern crate glutin_window;
 extern crate opengl_graphics;
-extern crate piston;
 
-use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{GlGraphics, OpenGL};
-use piston::event_loop::{EventSettings, Events};
-use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
+
+use std::process;
 use piston::window::WindowSettings;
+use piston::event_loop::{EventSettings, Events};
+use piston::input::{Button, Key, PressEvent, ReleaseEvent, RenderArgs, RenderEvent, UpdateArgs,
+                   UpdateEvent};
+use glutin_window::GlutinWindow;
+use opengl_graphics::{GlGraphics, OpenGL};
+use piston_window::Transformed;
+use graphics::rectangle;
 
-pub struct App {
-    gl: GlGraphics, // OpenGL drawing backend.
-    rotation: f64,  // Rotation for the square.
+
+
+
+ 
+
+struct Game
+{
+    gl: GlGraphics,
+    pos_x: f64,
+    pos_y: f64,
+
 }
 
-impl App {
-    fn render(&mut self, args: &RenderArgs) {
-        use graphics::*;
+impl Game
+{
+    fn render(&mut self,arg: &RenderArgs)
+    {
+        use graphics;
+        
+        let BACKGROUND: [f32; 4] = [0.349019608 , 0.349019608 , 0.290196078 , 1.0];
+        let COO: [f32;4] = [0.364705882, 0.717647059, 0.870588235, 0.8];
 
-        const GREEN: [f32; 4] = [0.6, 0.55, 0.59, 1.0]; //les couleur sonr R,G,B mais diviser par 255 la derniere valeur c'est la transparence
-        const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+        let square_c = rectangle::square(100.0, 100.0, 30.0);
+        let pos_x = self.pos_x as f64;
+        let pos_y = self.pos_y as f64;
 
-        let square = rectangle::square(0.0, 0.0, 30.0);
-        //let rotation = self.rotation;
-        let (x, y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
+        println!("pos x = {}",pos_x);
+        println!("pos y = {}",pos_y);
 
-        self.gl.draw(args.viewport(), |c, gl| {
-            // Clear the screen.
-            clear(GREEN, gl);
+    
 
-            let transform = c
-                .transform
-                .trans(x, y)
-                //.rot_rad(rotation)
-                .trans(-25.0, -25.0);
-
-            // Draw a box rotating around the middle of the screen.
-            rectangle(RED, square, transform, gl);
+        self.gl.draw(arg.viewport(), |c, gl| {
+            graphics::clear(BACKGROUND, gl);
+            rectangle(COO, square_c,c.transform.trans(pos_x,pos_y),gl); // deplace le carre de -200 vers la gauche  
         });
     }
 
-    /*fn update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
-        //self.rotation += 2.0 * args.dt;
-    }*/
+    fn press(&mut self, args: &Button)
+    {
+        if let &Button::Keyboard(key) = args
+        {
+            if self.pos_x == -100.0 || self.pos_x == 270.0
+            {
+                println!("board x hit");
+
+            }
+            if self.pos_y == -100.0 || self.pos_y == 670.0
+            {
+                println!("board y hit");
+            } 
+            else
+            {
+
+                match key 
+                {
+                    Key::Up => {self.pos_y -= 10.0}
+                    Key::Down => {self.pos_y += 10.0}
+                    Key::Left => {self.pos_x -= 10.0}
+                    Key::Right => {self.pos_x += 10.0}
+                    _ => {println!("other1");}
+                }
+            }
+        }
+    }
+
+    fn release(&mut self, args: &Button)
+    {
+        if let &Button::Keyboard(key) = args 
+        {
+            match key
+            {
+                Key::Up => {println!("Up release");}
+                Key::Down => {println!("Down release");}
+                Key::Left => {println!("Left release");}
+                Key::Right => {println!("Right release");}
+                _ => {println!("other release");}
+            }
+        }
+    }
 }
 
-fn main() {
-    // Change this to OpenGL::V2_1 if not working.
+fn main()
+{
     let opengl = OpenGL::V3_2;
 
-    // Create an Glutin window.
-    let mut window: Window = WindowSettings::new("spinning-square", [400, 800])
+    let mut window: GlutinWindow = WindowSettings::new("Tetris Game",[400,800])
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()
         .unwrap();
-
-    // Create a new game and run it.
-    let mut app = App {
+    
+    let mut game = Game{
         gl: GlGraphics::new(opengl),
-        rotation: 0.0,
-    };
+        pos_x: 200.0,
+        pos_y: 0.0,
+        };
 
     let mut events = Events::new(EventSettings::new());
-    while let Some(e) = events.next(&mut window) {
-        if let Some(args) = e.render_args() {
-            app.render(&args);
-        }
-
-        /*if let Some(args) = e.update_args() {
-            app.update(&args);
-        }*/
+    while let Some(e) = events.next(&mut window) 
+    {
+            if let Some(r) = e.render_args() 
+            {
+                game.render(&r);
+            }
+            if let Some(b) = e.press_args()
+            {
+                game.press(&b);
+            }
+            if let Some(b) = e.release_args()
+            {
+                game.release(&b);
+            }
+    
     }
 }
+ 
