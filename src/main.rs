@@ -2,10 +2,11 @@ use piston_window::{WindowSettings, PistonWindow, Event, RenderEvent, PressEvent
 use piston_window::{Rectangle, DrawState, Context, Graphics};
 use piston_window::{Button, Key};
 use std::collections::HashMap;
+use rand::Rng;
 
 #[derive(Copy,Clone)]
 enum Couleur{
-    Red,Green,Blue,Yellow,
+    Red,Green,Blue,Yellow,Cyan,Orange,Violet,
 }
 #[derive(Default)]
 struct Dimmension{
@@ -44,13 +45,16 @@ impl Piece {
                     Rectangle::new([0.2, 0.2, 0.2, 1.0]).draw(cube_bordure, &DrawState::default(), c.transform, g);
                     if let Some(couleur) = self.0.get(&(x as i32, y as i32)) {
                         let code = match couleur{
-                            Couleur::Red => [1.0,0.0,0.0,1.0],
-                            Couleur::Green => [0.0,1.0,0.0,1.0],
-                            Couleur::Blue => [0.0,0.0,1.0,1.0],
-                            Couleur::Yellow => [1.0,1.0,0.0,1.0],
+                            Couleur::Red => [0.8,0.0,0.0,1.0],
+                            Couleur::Green => [0.0,0.8,0.0,1.0],
+                            Couleur::Blue => [0.0,0.0,0.8,1.0],
+                            Couleur::Yellow => [0.8,0.8,0.0,1.0],
+                            Couleur::Orange => [0.8,0.3,0.0,1.0],
+                            Couleur::Violet => [0.8,0.0,0.8,1.0],
+                            Couleur::Cyan => [0.0,0.8,0.8,1.0],
                         };
                         Rectangle::new(code).draw(cube_bordure, &DrawState::default(), c.transform, g);
-                        let code = [code[0]*0.8,code[1]*0.8,code[2]*0.8,1.0];
+                        let code = [code[0]*1.2,code[1]*1.2,code[2]*1.2,1.0];
                         Rectangle::new(code).draw(cube, &DrawState::default(), c.transform, g);
 
 
@@ -71,7 +75,12 @@ impl Game{
             pieces: Default::default(),
             piece_p:vec![
                 Piece::new(&[(0,0),(0,1),(1,0),(1,1)], Couleur::Yellow),
-                Piece::new(&[(0,0),(1,0),(2,0),(1,1)], Couleur::Red),
+                Piece::new(&[(0,0),(1,0),(2,0),(1,1)], Couleur::Violet),
+                Piece::new(&[(0,0),(1,0),(2,0),(3,0)], Couleur::Cyan),
+                Piece::new(&[(0,0),(0,1),(1,1),(2,1)], Couleur::Blue),
+                Piece::new(&[(2,0),(0,1),(1,1),(2,1)], Couleur::Orange),
+                Piece::new(&[(1,0),(2,0),(0,1),(1,1)], Couleur::Green),
+                Piece::new(&[(0,0),(1,0),(1,1),(2,1)], Couleur::Red),
             ]
         }
     }
@@ -88,13 +97,14 @@ fn main() {
         taille_y: 20,
     };
     let bg = [0.0,0.0,0.0,1.0];
+    let mut rng = rand::thread_rng();
 
     let mut window: PistonWindow = WindowSettings::new("Tetris",dim.resolution())
             .exit_on_esc(true).build().unwrap();
     let mut events = window.events;
 
     let mut partie = Game::new(dim);
-    partie.pieces = partie.pieces.merged(&partie.piece_p[1]);
+    partie.pieces = partie.pieces.merged(&partie.piece_p[rng.gen_range(0, 6)]);
 
 
     while let Some(e) = window.next(){
