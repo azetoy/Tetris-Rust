@@ -21,6 +21,7 @@ impl Dimmension{
 }
 #[derive(Default)]
 struct Piece(HashMap<(i32,i32),Couleur>);
+//Hash [Key(i32,i32) -> valeur,Couleur]
 
 impl Piece {
     fn new(v: &[(i32,i32)],couleur : Couleur) -> Self{
@@ -36,16 +37,21 @@ impl Piece {
             for x in 0 .. dim.taille_x{
                 for y in 0 .. dim.taille_y{
                     let taille_cube = dim.taille_cube as f64;
-                    let cube = [taille_cube * (x as f64), taille_cube * (y as f64), taille_cube, taille_cube];
-                    Rectangle::new([0.2, 0.2, 0.2, 1.0]).draw(cube, &DrawState::default(), c.transform, g);
+                    let cube_bordure = [taille_cube * (x as f64), taille_cube * (y as f64), taille_cube, taille_cube];
+                    let cube = [cube_bordure[0]*0.8,cube_bordure[1]*0.8,taille_cube*0.8,taille_cube*0.8];
+                    //Plateau de jeu
+                    Rectangle::new([0.2, 0.2, 0.2, 1.0]).draw(cube_bordure, &DrawState::default(), c.transform, g);
                     if let Some(couleur) = self.0.get(&(x as i32, y as i32)) {
                         let code = match couleur{
                             Couleur::Red => [1.0,0.0,0.0,1.0],
                             Couleur::Green => [0.0,1.0,0.0,1.0],
                             Couleur::Blue => [0.0,0.0,1.0,1.0],
-                            Couleur::Yellow => [0.5,0.5,0.0,1.0],
+                            Couleur::Yellow => [1.0,1.0,0.0,1.0],
                         };
+                        Rectangle::new(code).draw(cube_bordure, &DrawState::default(), c.transform, g);
+                        let code = [code[0]*0.2,code[1]*0.2,code[2]*0.2,1.0];
                         Rectangle::new(code).draw(cube, &DrawState::default(), c.transform, g);
+
 
                     }
                 }
@@ -87,7 +93,7 @@ fn main() {
     let mut events = window.events;
 
     let mut partie = Game::new(dim);
-    partie.pieces = partie.pieces.merged(&partie.piece_p[0]);
+    partie.pieces = partie.pieces.merged(&partie.piece_p[1]);
 
 
     while let Some(e) = window.next(){
