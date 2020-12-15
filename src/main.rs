@@ -37,8 +37,9 @@ impl Piece {
             for x in 0 .. dim.taille_x{
                 for y in 0 .. dim.taille_y{
                     let taille_cube = dim.taille_cube as f64;
+                    let taille_bordure = taille_cube/20.0;
                     let cube_bordure = [taille_cube * (x as f64), taille_cube * (y as f64), taille_cube, taille_cube];
-                    let cube = [cube_bordure[0]*0.8,cube_bordure[1]*0.8,taille_cube*0.8,taille_cube*0.8];
+                    let cube = [cube_bordure[0]+taille_bordure,cube_bordure[1]+taille_bordure,taille_cube-taille_bordure*2.0,taille_cube-taille_bordure*2.0];
                     //Plateau de jeu
                     Rectangle::new([0.2, 0.2, 0.2, 1.0]).draw(cube_bordure, &DrawState::default(), c.transform, g);
                     if let Some(couleur) = self.0.get(&(x as i32, y as i32)) {
@@ -49,7 +50,7 @@ impl Piece {
                             Couleur::Yellow => [1.0,1.0,0.0,1.0],
                         };
                         Rectangle::new(code).draw(cube_bordure, &DrawState::default(), c.transform, g);
-                        let code = [code[0]*0.2,code[1]*0.2,code[2]*0.2,1.0];
+                        let code = [code[0]*0.8,code[1]*0.8,code[2]*0.8,1.0];
                         Rectangle::new(code).draw(cube, &DrawState::default(), c.transform, g);
 
 
