@@ -3,6 +3,8 @@ use piston_window::{Context, DrawState, Graphics, Rectangle};
 use piston_window::{Event, PistonWindow, PressEvent, RenderEvent, WindowSettings};
 use rand::Rng;
 use std::collections::HashMap;
+use piston_window::UpdateEvent;
+use std::time::Instant;
 
 #[derive(Copy, Clone)]
 enum Couleur {
@@ -43,57 +45,133 @@ impl Piece {
         Self(hashmap)
     }
 
-    fn press(&mut self, args: &Button) 
+    fn chech_pos(&mut self,x : i32,y:i32,piece_total : &Piece) -> bool
     {
+        let mut r:bool = true;
+        let mut res2:Vec<bool>;
+        res2 = [].to_vec();
+        let mut res:Vec<bool>;
         let temp = self.0.clone();
-            self.0 = temp   
-                .into_iter()
-                .map(|(mut x, y)| {
-                    let mut vec = Vec::new();
-                    let mut acc = 0;
-                    vec.push(x);
-                    let len = vec.len();
-                    println!("vec = {:?}, len = {:?} x = {:?}",vec,len,x);
-                    if let &Button::Keyboard(key) = args 
+        
+        res = temp
+            .into_iter()
+            .map(|(x_pos,_y_pos)|
+            {
+                println!("pos x = {:?} pos y = {:?}",x_pos.0,x_pos.1);
+                if x_pos.0 + x < 0 || x_pos.1 + y >= 17 || x_pos.0 + x >= 8
+                {
+                    false
+                }
+                else
+                {
+                    let temp_piece = piece_total.0.clone();
+                    res2 = temp_piece
+                    .into_iter()
+                    .map(|(x_pos2,_y_pos2)|
                     {
-                        match key {
-                            Key::Up => 
-                            for i in vec 
-                            {
-                                println!(" i = {:?}",i);
-                                if i >= (0,0) 
-                                {
+                        if x_pos.0 + x == x_pos2.0 && x_pos.1 + y == x_pos2.1
+                        {
+                            false
+                        }
+                        else
+                        {
+                            true
+                        }
+                    }).collect();
+                    true
+                }
 
-                                    acc += 1;
-                                    println!("acc vaut {:?}",acc);
 
-                                } 
-                                if acc == 4
-                                {
-                                    println!("ww");
-                                    x.1 -= 1;
-                                    acc = 0;
-                                }
-                                else
-                                {
-                                    println!("board hit up i vaut {:?}",i);
-                                    println!("acc vaut {:?}",acc);
-                                }
-                            },
-                            Key::Down => if (x.1) >= 15 {println!("board hit Down");} else{x.1 += 1},
-                            Key::Left => x.0 -= 1,
-                            Key::Right => if (x.0) >= 7 {println!("board hit Right");} else{x.0 += 1},
-                            _ => {
-                                println!("{:?}", x.0);
-                            }
-                        };
+            }).collect();
+            for i in res
+            {
+                if i == false
+                    {
+                       r = false;
                     }
-                    (x, y)
-                })
-                .collect();
+                
+            }
+            for i in res2
+            {
+                if i== false
+                {
+                    r = false;
+                }
+            }
+            r
+
     }
+
+
+    fn dab(&mut self,x:i32,y:i32)
+    {
+        println!("im here x = {:?} y = {:?}",x,y);
+        let temp = self.0.clone();
+        
+        self.0 = temp
+            .into_iter()
+            .map(|(mut x_pos,_y_pos)|
+            {
+                x_pos.0 += x;
+                x_pos.1 += y;
+                (x_pos,_y_pos)
+            }).collect();      
+    }
+
+    fn press(&mut self, args: &Button,piece : &Piece) 
+    { 
+         
+        if let &Button::Keyboard(key) = args 
+        {
+            match key {
+                Key::Down => if self.chech_pos(0,1,&piece){self.dab(0,1);},
+                Key::Left => if self.chech_pos(-1,0,&piece){self.dab(-1,0);},
+                Key::Right => if self.chech_pos(1,0,&piece){self.dab(1,0);},
+                _ => {},
+            };
+        }
+    }
+
     fn render<G>(&self, dim: &Dimmension, c: &Context, g: &mut G)
     where
+        G: Graphics,
+    {
+        for x in 0..dim.taille_x {
+            for y in 0..dim.taille_y {
+                let taille_cube = dim.taille_cube as f64;
+                let taille_bordure = taille_cube / 20.0;
+                let cube_bordure = [
+                    taille_cube * (x as f64),
+                    taille_cube * (y as f64),
+                    taille_cube,
+                    taille_cube,
+                ];
+                let cube = [
+                    cube_bordure[0] + taille_bordure,
+                    cube_bordure[1] + taille_bordure,
+                    taille_cube - taille_bordure * 2.0,
+                    taille_cube - taille_bordure * 2.0,
+                ];
+                if let Some(couleur) = self.0.get(&(x as i32, y as i32)) {
+                    let code = match couleur {
+                        Couleur::Red => [0.8, 0.0, 0.0, 1.0],
+                        Couleur::Green => [0.0, 0.8, 0.0, 1.0],
+                        Couleur::Blue => [0.0, 0.0, 0.8, 1.0],
+                        Couleur::Yellow => [0.8, 0.8, 0.0, 1.0],
+                        Couleur::Orange => [0.8, 0.3, 0.0, 1.0],
+                        Couleur::Violet => [0.8, 0.0, 0.8, 1.0],
+                        Couleur::Cyan => [0.0, 0.8, 0.8, 1.0],
+                    };
+                    Rectangle::new(code).draw(cube_bordure, &DrawState::default(), c.transform, g);
+                    let code = [code[0] * 1.2, code[1] * 1.2, code[2] * 1.2, 1.0];
+                    Rectangle::new(code).draw(cube, &DrawState::default(), c.transform, g);
+                }
+            }
+        }
+    }
+
+    fn render_board<G>(&self, dim: &Dimmension, c: &Context, g: &mut G)
+        where
         G: Graphics,
     {
         for x in 0..dim.taille_x {
@@ -119,20 +197,7 @@ impl Piece {
                     c.transform,
                     g,
                 );
-                if let Some(couleur) = self.0.get(&(x as i32, y as i32)) {
-                    let code = match couleur {
-                        Couleur::Red => [0.8, 0.0, 0.0, 1.0],
-                        Couleur::Green => [0.0, 0.8, 0.0, 1.0],
-                        Couleur::Blue => [0.0, 0.0, 0.8, 1.0],
-                        Couleur::Yellow => [0.8, 0.8, 0.0, 1.0],
-                        Couleur::Orange => [0.8, 0.3, 0.0, 1.0],
-                        Couleur::Violet => [0.8, 0.0, 0.8, 1.0],
-                        Couleur::Cyan => [0.0, 0.8, 0.8, 1.0],
-                    };
-                    Rectangle::new(code).draw(cube_bordure, &DrawState::default(), c.transform, g);
-                    let code = [code[0] * 1.2, code[1] * 1.2, code[2] * 1.2, 1.0];
-                    Rectangle::new(code).draw(cube, &DrawState::default(), c.transform, g);
-                }
+
             }
         }
     }
@@ -140,6 +205,7 @@ impl Piece {
 struct Game {
     pieces: Piece,
     dim: Dimmension,
+    current_piece: Piece,
     piece_p: Vec<Piece>,
 }
 impl Game {
@@ -147,6 +213,7 @@ impl Game {
         Self {
             dim,
             pieces: Default::default(),
+            current_piece: Default::default(),
             piece_p: vec![
                 Piece::new(&[(0, 0), (0, 1), (1, 0), (1, 1)], Couleur::Yellow),
                 Piece::new(&[(0, 0), (1, 0), (2, 0), (1, 1)], Couleur::Violet),
@@ -160,11 +227,14 @@ impl Game {
     }
     fn render(&self, window: &mut PistonWindow, event: &Event) {
         window.draw_2d(event, |c, g, _| {
+            self.pieces.render_board(&self.dim,&c,g);
             self.pieces.render(&self.dim, &c, g);
+            self.current_piece.render(&self.dim, &c, g);
         });
     }
 }
 fn main() {
+    let mut start = Instant::now();
     let dim = Dimmension {
         taille_cube: 40,
         taille_x: 8,
@@ -181,14 +251,32 @@ fn main() {
     let mut events = window.events;
 
     let mut partie = Game::new(dim);
-    partie.pieces = partie.pieces.merged(&partie.piece_p[rng.gen_range(0, 6)]);
+    partie.current_piece = partie.piece_p[rng.gen_range(0, 6)].clone();
 
     while let Some(e) = window.next() {
         if let Some(_) = e.render_args() {
             partie.render(&mut window, &e);
+
         }
         if let Some(b) = e.press_args() {
-            Piece::press(&mut partie.pieces, &b);
+            Piece::press(&mut partie.current_piece, &b,&partie.pieces);
+        }
+        if let Some(b) = e.update_args()
+        {
+            let apres = start.elapsed();
+            if apres.as_secs() > 1
+            {
+
+            if partie.current_piece.chech_pos(0,1,&partie.pieces){partie.current_piece.dab(0,1);}
+            else{
+                partie.pieces = partie.pieces.merged(&partie.current_piece);
+                partie.current_piece =partie.piece_p[rng.gen_range(0, 6)].clone();
+
+                };
+            start = Instant::now();
+            }
+
         }
     }
+    
 }
