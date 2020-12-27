@@ -43,25 +43,54 @@ impl Piece {
         Self(hashmap)
     }
 
-    fn press(&mut self, args: &Button) {
-        let coco = self.0.clone();
-        self.0 = coco
-            .into_iter()
-            .map(|(mut x, y)| {
-                if let &Button::Keyboard(key) = args {
-                    match key {
-                        Key::Up => x.1 -= 1,
-                        Key::Down => x.1 += 1,
-                        Key::Left => x.0 -= 1,
-                        Key::Right => x.0 += 1,
-                        _ => {
-                            println!("{:?}", x);
-                        }
-                    };
-                }
-                (x, y)
-            })
-            .collect();
+    fn press(&mut self, args: &Button) 
+    {
+        let temp = self.0.clone();
+            self.0 = temp   
+                .into_iter()
+                .map(|(mut x, y)| {
+                    let mut vec = Vec::new();
+                    let mut acc = 0;
+                    vec.push(x);
+                    let len = vec.len();
+                    println!("vec = {:?}, len = {:?} x = {:?}",vec,len,x);
+                    if let &Button::Keyboard(key) = args 
+                    {
+                        match key {
+                            Key::Up => 
+                            for i in vec 
+                            {
+                                println!(" i = {:?}",i);
+                                if i >= (0,0) 
+                                {
+
+                                    acc += 1;
+                                    println!("acc vaut {:?}",acc);
+
+                                } 
+                                if acc == 4
+                                {
+                                    println!("ww");
+                                    x.1 -= 1;
+                                    acc = 0;
+                                }
+                                else
+                                {
+                                    println!("board hit up i vaut {:?}",i);
+                                    println!("acc vaut {:?}",acc);
+                                }
+                            },
+                            Key::Down => if (x.1) >= 15 {println!("board hit Down");} else{x.1 += 1},
+                            Key::Left => x.0 -= 1,
+                            Key::Right => if (x.0) >= 7 {println!("board hit Right");} else{x.0 += 1},
+                            _ => {
+                                println!("{:?}", x.0);
+                            }
+                        };
+                    }
+                    (x, y)
+                })
+                .collect();
     }
     fn render<G>(&self, dim: &Dimmension, c: &Context, g: &mut G)
     where
