@@ -2,6 +2,8 @@
 
 Version rogue like de Tetris
 
+- inspire de https://github.com/da-x/tetris-demo
+
 Fonctionalités visée :
 - Le jeu Tetris de base
 - Des ennemis avec différentes attaques (Définis pars plusieur objets aléatoire)
