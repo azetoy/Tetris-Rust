@@ -3,6 +3,7 @@
 Version rogue like de Tetris
 
 - inspire de https://github.com/da-x/tetris-demo
+-Licence MIT
 
 Fonctionalités visée :
 - Le jeu Tetris de base
